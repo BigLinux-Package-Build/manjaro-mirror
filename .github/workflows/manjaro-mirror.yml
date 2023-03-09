@@ -3,7 +3,7 @@ name: Manjaro Mirror Fasttrack
 # Controls when the workflow will run
 on:
   schedule:
-    - cron:  '30 2 * * *'
+    - cron:  '30 5 * * 5'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - id: install-build-dependencies
+      - name: Install Build Dependencies
         shell: bash
         run: |
           sudo apt update
@@ -55,7 +55,7 @@ jobs:
           sudo python3 -m pip install meson
           sudo python3 -m pip install ninja
       
-      - id: install-pacman
+      - name: Install Pacman
         shell: bash
         env:
           PACMAN_VERSION: 6.0.1
@@ -84,7 +84,7 @@ jobs:
           popd
           sudo rm -r pacman
     
-      - id: install-pacman-mirrors
+      - name: Install Pacman Mirrors
         shell: bash
         run: |
           git clone https://gitlab.manjaro.org/applications/pacman-mirrors.git
@@ -102,7 +102,7 @@ jobs:
           popd
           sudo rm -r pacman-mirrors
           
-      - id: install-keyrings
+      - name: Install Keyrings
         shell: bash
         run: |
           sudo install -dm755 /usr/share/pacman/keyrings/
@@ -133,7 +133,7 @@ jobs:
           popd
           sudo rm -r archlinux-keyring
         
-      - id: pull-keys
+      - name: Pull Keys
         shell: bash
         run: |
           sudo git clone https://github.com/biglinux/biglinux-key.git
