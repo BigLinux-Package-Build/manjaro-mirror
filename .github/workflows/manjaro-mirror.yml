@@ -1,0 +1,53 @@
+name: Manjaro Mirror Fasttrack
+
+# Controls when the workflow will run
+on:
+  schedule:
+    - cron:  '30 2 * * *'
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: manjarolinux/base:latest
+    steps:
+      - uses: actions/checkout@v3
+          
+      - name: Install Dependencies
+        shell: bash
+        run: |
+          echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
+          pacman -Syu --noconfirm --needed \
+          tmate \
+          xz \
+          openssh \
+          git \
+          pacman-mirrors
+          
+      ## Tmate ##
+      - name: Setup TMATE Session
+        uses: mxschmitt/action-tmate@v3
+        with:
+          install-dependencies: false
+          
+      # - name: Mirrors Fasttrack
+      #   shell: bash
+      #   run: |
+          
+          
+          
+          
+#       - name: Update github
+#         run: |
+#           git add --all
+#           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+#           git config --local user.name "github-actions[bot]"
+#           if [ -n "$(git commit -m "new version" -a | grep "nothing to commit")" ];then exit 0; fi
+#           
+#       - name: Push changes
+#         uses: ad-m/github-push-action@master
+#         with:
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           branch: ${{ github.ref }}
