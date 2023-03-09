@@ -17,58 +17,58 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: manjarolinux/base:latest
+    # container: manjarolinux/base:latest
     steps:
       - uses: actions/checkout@v3
           
-      - name: Install Dependencies
-        shell: bash
-        run: |
-          echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
-          pacman -Syu --noconfirm --needed \
-          tmate \
-          xz \
-          openssh \
-          git \
-          pacman-mirrors
+      # - name: Install Dependencies
+      #   shell: bash
+      #   run: |
+      #     echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
+      #     pacman -Syu --noconfirm --needed \
+      #     tmate \
+      #     xz \
+      #     openssh \
+      #     git \
+      #     pacman-mirrors
           
-      - name: Git Clone
-        shell: bash
-        run: |
-          mkdir -p ~/.ssh
-          touch ~/.ssh/id_ed25519
-          echo "${{ secrets.SSH_UPLOAD }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          eval `ssh-agent -s`
-          ssh-add ~/.ssh/id_rsa
-          ssh-add ~/.ssh/id_ed25519
-          git clone git@github.com:${{ github.repository }}.git
-          # cd $(echo ${{ github.repository }} | cut -d "/" -f2)
+      # - name: Git Clone
+      #   shell: bash
+      #   run: |
+      #     mkdir -p ~/.ssh
+      #     touch ~/.ssh/id_ed25519
+      #     echo "${{ secrets.SSH_UPLOAD }}" > ~/.ssh/id_ed25519
+      #     chmod 600 ~/.ssh/id_ed25519
+      #     eval `ssh-agent -s`
+      #     ssh-add ~/.ssh/id_rsa
+      #     ssh-add ~/.ssh/id_ed25519
+      #     git clone git@github.com:${{ github.repository }}.git
+      #     # cd $(echo ${{ github.repository }} | cut -d "/" -f2)
       
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        with:
-          install-dependencies: false
+        # with:
+          # install-dependencies: false
         
-      - name: Mirrors Fasttrack
-        shell: bash
-        run: |
-          sudo pacman-mirrors --geoip
-          cp /etc/pacman.d/mirrorlist $PWD/$(echo ${{ github.repository }} | cut -d "/" -f2)
-          sed -i '/#/d;/^$/d' $PWD/$(echo ${{ github.repository }} | cut -d "/" -f2)/mirrorlist
+      # - name: Mirrors Fasttrack
+      #   shell: bash
+      #   run: |
+      #     sudo pacman-mirrors --geoip
+      #     cp /etc/pacman.d/mirrorlist $PWD/$(echo ${{ github.repository }} | cut -d "/" -f2)
+      #     sed -i '/#/d;/^$/d' $PWD/$(echo ${{ github.repository }} | cut -d "/" -f2)/mirrorlist
           
           
-      - name: Update github
-        run: |
-          cd $(echo ${{ github.repository }} | cut -d "/" -f2)
-          git add --all
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          if [ -n "$(git commit -m "new version" -a | grep "nothing to commit")" ];then exit 0; fi
+      # - name: Update github
+      #   run: |
+      #     cd $(echo ${{ github.repository }} | cut -d "/" -f2)
+      #     git add --all
+      #     git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      #     git config --local user.name "github-actions[bot]"
+      #     if [ -n "$(git commit -m "new version" -a | grep "nothing to commit")" ];then exit 0; fi
           
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+      # - name: Push changes
+      #   uses: ad-m/github-push-action@master
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     branch: ${{ github.ref }}
