@@ -39,8 +39,8 @@ jobs:
           touch ~/.ssh/id_ed25519
           echo "${{ secrets.SSH_UPLOAD }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          eval `ssh-agent -s`
-          ssh-add ~/.ssh/id_ed25519
+          # eval `ssh-agent -s`
+          # ssh-add ~/.ssh/id_ed25519
           # git clone git@github.com:${{ github.repository }}.git
           # cd $(echo ${{ github.repository }} | cut -d "/" -f2)
       
