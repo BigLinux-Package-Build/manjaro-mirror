@@ -32,18 +32,26 @@ jobs:
           git \
           pacman-mirrors
           
+      - name: Git Clone
+        shell: bash
+        run: |
+          echo "${{ secrets.SSH_UPLOAD }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          git clone git@github.com:${{ github.repository }}.git
+          cd $(echo ${{ github.repository }} | cut -d "/" -f2)
+        
       - name: Mirrors Fasttrack
         shell: bash
         run: |
           sudo pacman-mirrors --geoip
           cp /etc/pacman.d/mirrorlist $PWD
+          sed -i '/#/d;/^$/d' mirrorlist
           
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         with:
           install-dependencies: false
-          
           
       - name: Update github
         run: |
