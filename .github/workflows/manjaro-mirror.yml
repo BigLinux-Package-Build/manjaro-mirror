@@ -20,7 +20,160 @@ jobs:
     # container: manjarolinux/base:latest
     steps:
       - uses: actions/checkout@v3
+      
+      - id: install-build-dependencies
+        shell: bash
+        run: |
+          sudo apt update
+          sudo apt-fast install -y \
+            gdisk \
+            zip \
+            systemd-container \
+            bmap-tools \
+            asciidoc \
+            libarchive-tools \
+            git \
+            build-essential \
+            cmake \
+            libarchive-dev \
+            pkg-config \
+            libcurl4-openssl-dev \
+            libgpgme-dev \
+            libssl-dev \
+            fakeroot \
+            dh-autoreconf \
+            haveged \
+            os-prober \
+            kwalify \
+            dosfstools \
+            libisoburn1 \
+            squashfs-tools \
+            docbook2x \
+            mktorrent \
+            doxygen \
+            zstd
+          sudo python3 -m pip install meson
+          sudo python3 -m pip install ninja
+      
+      - id: install-pacman
+        shell: bash
+        env:
+          PACMAN_VERSION: 6.0.1
+        run: |
+          sudo git clone --depth 1 https://gitlab.manjaro.org/packages/core/pacman.git
+          pushd pacman
+            sudo wget https://sources.archlinux.org/other/pacman/pacman-${PACMAN_VERSION}.tar.xz
+            sudo tar -xvf pacman-${PACMAN_VERSION}.tar.xz
+            pushd pacman-${PACMAN_VERSION}
+              sudo patch -p1 -i ../pacman-sync-first-option.patch
+              sudo meson --prefix=/usr \
+                        --buildtype=plain \
+                        -Ddoc=disabled \
+                        -Ddoxygen=enabled \
+                        -Dscriptlet-shell=/usr/bin/bash \
+                        -Dldconfig=/usr/bin/ldconfig \
+                        build
+              sudo meson compile -C build
+              sudo meson install -C build
+            popd
+            sudo install -m644 pacman.conf /etc/pacman.conf
+            sudo install -m644 makepkg.conf /etc/
+            sudo mkdir -p /etc/pacman.d
+            sudo touch /etc/pacman.d/mirrorlist
+            echo 'Server = Server = https://forksystems.mm.fcix.net/manjaro/stable/$repo/$arch' | sudo tee -a /etc/pacman.d/mirrorlist
+          popd
+          sudo rm -r pacman
+    
+      - id: install-pacman-mirrors
+        shell: bash
+        run: |
+          git clone https://gitlab.manjaro.org/applications/pacman-mirrors.git
+          pushd pacman-mirrors
+            wget https://gitlab.manjaro.org/packages/core/pacman-mirrors/-/raw/master/pacman-mirrors-install.script
+            wget https://gitlab.manjaro.org/packages/core/pacman-mirrors/-/raw/master/pacman-mirrors-upgrade.script
+            wget https://gitlab.manjaro.org/packages/core/pacman-mirrors/-/raw/master/pacman-mirrors-install.hook
+            wget https://gitlab.manjaro.org/packages/core/pacman-mirrors/-/raw/master/pacman-mirrors-upgrade.hook
+            python setup.py compile_catalog --directory locale --domain pacman_mirrors
+            sudo python setup.py install --root="/" --optimize=1
+            sudo install -Dm755 "pacman-mirrors-install.script" "/usr/share/libalpm/scripts/pacman-mirrors-install"
+            sudo install -Dm755 "pacman-mirrors-upgrade.script" "/usr/share/libalpm/scripts/pacman-mirrors-upgrade"  
+            sudo install -Dm644 "pacman-mirrors-install.hook" "/usr/share/libalpm/hooks/pacman-mirrors-install.hook" 
+            sudo install -Dm644 "pacman-mirrors-upgrade.hook" "/usr/share/libalpm/hooks/pacman-mirrors-upgrade.hook"
+          popd
+          sudo rm -r pacman-mirrors
           
+      - id: install-keyrings
+        shell: bash
+        run: |
+          sudo install -dm755 /usr/share/pacman/keyrings/
+
+          sudo git clone --depth 1 https://gitlab.manjaro.org/packages/core/manjaro-keyring.git
+          pushd manjaro-keyring
+            sudo install -m0644 manjaro.gpg /usr/share/pacman/keyrings/
+            sudo install -m0644 manjaro-trusted /usr/share/pacman/keyrings/
+            sudo install -m0644 manjaro-revoked /usr/share/pacman/keyrings/
+          popd
+          sudo rm -r manjaro-keyring
+          
+          sudo git clone --depth 1 https://github.com/biglinux/biglinux-keyring.git
+          pushd biglinux-keyring
+            sudo install -m0644 biglinux.gpg /usr/share/pacman/keyrings/
+            sudo install -m0644 biglinux-trusted /usr/share/pacman/keyrings/
+            sudo install -m0644 biglinux-trusted /usr/share/pacman/keyrings/
+          popd
+          sudo rm -r biglinux-keyring
+
+          mkdir -p archlinux-keyring
+          pushd archlinux-keyring
+            wget https://archlinux.org/packages/core/any/archlinux-keyring/download -O /tmp/archlinux-keyring.tar.zst
+            tar --use-compress-program=unzstd --strip-components=4 --wildcards -xvf /tmp/archlinux-keyring.tar.zst usr/share/pacman/keyrings/*
+            sudo install -m0644 archlinux.gpg /usr/share/pacman/keyrings/
+            sudo install -m0644 archlinux-trusted /usr/share/pacman/keyrings/
+            sudo install -m0644 archlinux-revoked /usr/share/pacman/keyrings/
+          popd
+          sudo rm -r archlinux-keyring
+        
+      - id: pull-keys
+        shell: bash
+        run: |
+          sudo git clone https://github.com/biglinux/biglinux-key.git
+          sudo install -dm755 /etc/pacman.d/gnupg/
+          sudo install -m0644 biglinux-key/usr/share/pacman/keyrings/* /etc/pacman.d/gnupg/
+          sudo rm -r biglinux-key
+       
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        
+      - name: Mirrors Fasttrack
+        shell: bash
+        run: |
+          sudo pacman-mirrors --geoip
+          cp /etc/pacman.d/mirrorlist $PWD
+          sed -i '/#/d;/^$/d' mirrorlist
+          
+      - name: Update github
+        run: |
+          git add --all
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          if [ -n "$(git commit -m "update $(date +%Y-%m-%d)" -a | grep "nothing to commit")" ];then exit 0; fi
+          
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}  
+        
+        
+        
+        
+        
+        
+        
+        
+        
+           
       # - name: Install Dependencies
       #   shell: bash
       #   run: |
@@ -45,9 +198,9 @@ jobs:
       #     git clone git@github.com:${{ github.repository }}.git
       #     # cd $(echo ${{ github.repository }} | cut -d "/" -f2)
       
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+      #   if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         # with:
           # install-dependencies: false
         
