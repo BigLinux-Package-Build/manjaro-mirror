@@ -43,6 +43,12 @@ jobs:
           ssh-add ~/.ssh/id_ed25519
           # git clone git@github.com:${{ github.repository }}.git
           # cd $(echo ${{ github.repository }} | cut -d "/" -f2)
+      
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          install-dependencies: false
         
       - name: Mirrors Fasttrack
         shell: bash
@@ -51,11 +57,6 @@ jobs:
           cp /etc/pacman.d/mirrorlist $PWD/$(echo ${{ github.repository }} | cut -d "/" -f2)
           sed -i '/#/d;/^$/d' $PWD/$(echo ${{ github.repository }} | cut -d "/" -f2)/mirrorlist
           
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        with:
-          install-dependencies: false
           
       - name: Update github
         run: |
