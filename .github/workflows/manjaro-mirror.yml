@@ -32,17 +32,18 @@ jobs:
           git \
           pacman-mirrors
           
+      - name: Mirrors Fasttrack
+        shell: bash
+        run: |
+          sudo pacman-mirrors --geoip
+          cp /etc/pacman.d/mirrorlist $PWD
+          
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         with:
           install-dependencies: false
           
-      - name: Mirrors Fasttrack
-        shell: bash
-        run: |
-          sudo pacman-mirrors --geoip
-          cp /etc/pacman.d/mirrorlist $PWD
           
       - name: Update github
         run: |
