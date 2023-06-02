@@ -1,4 +1,3 @@
-Server = https://mirrors.gigenet.com/manjaro/stable/$repo/$arch
 Server = https://ohioix.mm.fcix.net/manjaro/stable/$repo/$arch
 Server = https://forksystems.mm.fcix.net/manjaro/stable/$repo/$arch
 Server = https://coresite.mm.fcix.net/manjaro/stable/$repo/$arch
