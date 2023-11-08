@@ -69,22 +69,22 @@ jobs:
           # echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
           pacman -Syu --noconfirm --needed tmate pacman-mirrors git openssh
           
+      - name: SSH Setup
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          > /root/.ssh/id_ed25519
+          chmod 600 /root/.ssh/id_ed25519
+          echo "${{ secrets.PACKAGE_BUILD_KEY }}" >> /root/.ssh/id_ed25519
+          eval `ssh-agent -s`
+          ssh-add /root/.ssh/id_ed25519
+          ssh-keyscan -t ed25519 github.com > /root/.ssh/known_hosts
+          
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         with:
           install-dependencies: false
-          
-      - name: SSH Setup
-        shell: bash
-        run: |
-          mkdir -p ~/.ssh
-          > ~/.ssh/github_actions
-          chmod 600 ~/.ssh/github_actions
-          echo "${{ secrets.PACKAGE_BUILD_KEY }}" >> ~/.ssh/github_actions
-          eval `ssh-agent -s`
-          ssh-add ~/.ssh/github_actions
-          ssh-keyscan -t ed25519 github.com > /root/.ssh/known_hosts
           
       - name: Mirrors Fasttrack
         shell: bash
