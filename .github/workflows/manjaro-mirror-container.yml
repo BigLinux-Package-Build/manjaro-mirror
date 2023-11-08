@@ -67,7 +67,7 @@ jobs:
         shell: bash
         run: |
           # echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
-          pacman -Syu --noconfirm --needed tmate pacman-mirrors
+          pacman -Syu --noconfirm --needed tmate pacman-mirrors git
           
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
