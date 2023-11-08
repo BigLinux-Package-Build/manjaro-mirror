@@ -83,28 +83,24 @@ jobs:
             echo 'Server = Server = https://forksystems.mm.fcix.net/manjaro/stable/$repo/$arch' | sudo tee -a /etc/pacman.d/mirrorlist
           popd
           sudo rm -r pacman
-       
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
     
-      - name: Install Pacman Mirrors
-        shell: bash
-        run: |
-          git clone https://gitlab.manjaro.org/applications/pacman-mirrors.git
-          pushd pacman-mirrors
-            wget https://gitlab.manjaro.org/packages/core/pacman-mirrors/-/raw/master/pacman-mirrors-install.script
-            wget https://gitlab.manjaro.org/packages/core/pacman-mirrors/-/raw/master/pacman-mirrors-upgrade.script
-            wget https://gitlab.manjaro.org/packages/core/pacman-mirrors/-/raw/master/pacman-mirrors-install.hook
-            wget https://gitlab.manjaro.org/packages/core/pacman-mirrors/-/raw/master/pacman-mirrors-upgrade.hook
-            python setup.py compile_catalog --directory locale --domain pacman_mirrors
-            sudo python setup.py install --root="/" --optimize=1
-            sudo install -Dm755 "pacman-mirrors-install.script" "/usr/share/libalpm/scripts/pacman-mirrors-install"
-            sudo install -Dm755 "pacman-mirrors-upgrade.script" "/usr/share/libalpm/scripts/pacman-mirrors-upgrade"  
-            sudo install -Dm644 "pacman-mirrors-install.hook" "/usr/share/libalpm/hooks/pacman-mirrors-install.hook" 
-            sudo install -Dm644 "pacman-mirrors-upgrade.hook" "/usr/share/libalpm/hooks/pacman-mirrors-upgrade.hook"
-          popd
-          sudo rm -r pacman-mirrors
+      # - name: Install Pacman Mirrors
+      #   shell: bash
+      #   run: |
+      #     git clone https://gitlab.manjaro.org/applications/pacman-mirrors.git
+      #     pushd pacman-mirrors
+      #       wget https://gitlab.manjaro.org/packages/core/pacman-mirrors/-/raw/master/pacman-mirrors-install.script
+      #       wget https://gitlab.manjaro.org/packages/core/pacman-mirrors/-/raw/master/pacman-mirrors-upgrade.script
+      #       wget https://gitlab.manjaro.org/packages/core/pacman-mirrors/-/raw/master/pacman-mirrors-install.hook
+      #       wget https://gitlab.manjaro.org/packages/core/pacman-mirrors/-/raw/master/pacman-mirrors-upgrade.hook
+      #       python setup.py compile_catalog --directory locale --domain pacman_mirrors
+      #       sudo python setup.py install --root="/" --optimize=1
+      #       sudo install -Dm755 "pacman-mirrors-install.script" "/usr/share/libalpm/scripts/pacman-mirrors-install"
+      #       sudo install -Dm755 "pacman-mirrors-upgrade.script" "/usr/share/libalpm/scripts/pacman-mirrors-upgrade"  
+      #       sudo install -Dm644 "pacman-mirrors-install.hook" "/usr/share/libalpm/hooks/pacman-mirrors-install.hook" 
+      #       sudo install -Dm644 "pacman-mirrors-upgrade.hook" "/usr/share/libalpm/hooks/pacman-mirrors-upgrade.hook"
+      #     popd
+      #     sudo rm -r pacman-mirrors
           
       - name: Install Keyrings
         shell: bash
@@ -144,6 +140,10 @@ jobs:
           sudo install -dm755 /etc/pacman.d/gnupg/
           sudo install -m0644 biglinux-key/usr/share/pacman/keyrings/* /etc/pacman.d/gnupg/
           sudo rm -r biglinux-key
+       
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         
       - name: Mirrors Fasttrack
         shell: bash
