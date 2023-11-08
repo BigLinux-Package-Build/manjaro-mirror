@@ -83,6 +83,10 @@ jobs:
             echo 'Server = Server = https://forksystems.mm.fcix.net/manjaro/stable/$repo/$arch' | sudo tee -a /etc/pacman.d/mirrorlist
           popd
           sudo rm -r pacman
+       
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
     
       - name: Install Pacman Mirrors
         shell: bash
@@ -140,10 +144,6 @@ jobs:
           sudo install -dm755 /etc/pacman.d/gnupg/
           sudo install -m0644 biglinux-key/usr/share/pacman/keyrings/* /etc/pacman.d/gnupg/
           sudo rm -r biglinux-key
-       
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
         
       - name: Mirrors Fasttrack
         shell: bash
