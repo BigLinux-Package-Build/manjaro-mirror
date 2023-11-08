@@ -73,11 +73,11 @@ jobs:
         shell: bash
         run: |
           mkdir -p ~/.ssh
-          > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          echo "${{ secrets.PACKAGE_BUILD_KEY }}" >> ~/.ssh/id_ed25519
+          > ~/.ssh/github_actions
+          chmod 600 ~/.ssh/github_actions
+          echo "${{ secrets.PACKAGE_BUILD_KEY }}" >> ~/.ssh/github_actions
           eval `ssh-agent -s`
-          ssh-add ~/.ssh/id_ed25519
+          ssh-add ~/.ssh/github_actions
           ssh-keyscan -t ed25519 github.com > /root/.ssh/known_hosts
           
       - name: Setup tmate session
