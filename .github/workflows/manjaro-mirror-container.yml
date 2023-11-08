@@ -69,23 +69,24 @@ jobs:
           # echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
           pacman -Syu --noconfirm --needed tmate pacman-mirrors git openssh
           
-      - name: Mirrors Fasttrack
-        shell: bash
-        run: |
-          sudo pacman-mirrors --geoip
-          cp /etc/pacman.d/mirrorlist $PWD
-          sed -i '/#/d;/^$/d' mirrorlist
-          
       - name: SSH Setup
         shell: bash
         run: |
           mkdir -p ~/.ssh
-          > ~/.ssh/authorized_keys
-          chmod 600 ~/.ssh/authorized_keys
-          #ssh-agent -a /tmp/ssh_agent.sock > /dev/null
-          echo "${{ secrets.PKGBUILD_KEY }}" >> ~/.ssh/authorized_keys
+          > ~/.ssh/github_actions
+          chmod 600 ~/.ssh/github_actions
+          echo "${{ secrets.PACKAGE_BUILD_KEY }}" >> ~/.ssh/github_actions
           eval `ssh-agent -s`
-          ssh-add ~/.ssh/authorized_keys
+          ssh-add ~/.ssh/github_actions
+          
+      - name: Mirrors Fasttrack
+        shell: bash
+        run: |
+          git clone git@github.com:BigLinux-Package-Build/manjaro-mirror.git
+          cd manjaro-mirror
+          sudo pacman-mirrors --geoip
+          cp /etc/pacman.d/mirrorlist $PWD
+          sed -i '/#/d;/^$/d' mirrorlist
           
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -95,13 +96,10 @@ jobs:
           
       - name: Update github
         run: |
+          cd manjaro-mirror
           git add --all
           git config --local user.email "${{ secrets.GIT_USER }}@users.noreply.github.com"
           git config --local user.name "${{ secrets.GIT_USER }}"
           if [ -n "$(git commit -m "update $(date +%Y-%m-%d)" -a | grep "nothing to commit")" ];then exit 0; fi
+          git push
           
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}  
