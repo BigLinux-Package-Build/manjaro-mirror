@@ -67,20 +67,30 @@ jobs:
         shell: bash
         run: |
           # echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
-          pacman -Syu --noconfirm --needed tmate pacman-mirrors git
+          pacman -Syu --noconfirm --needed tmate pacman-mirrors git openssh
           
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        with:
-          install-dependencies: false
-      
       - name: Mirrors Fasttrack
         shell: bash
         run: |
           sudo pacman-mirrors --geoip
           cp /etc/pacman.d/mirrorlist $PWD
           sed -i '/#/d;/^$/d' mirrorlist
+          
+      - name: SSH Setup
+        shell: |
+          mkdir -p ~/.ssh
+          > ~/.ssh/authorized_keys
+          chmod 600 ~/.ssh/authorized_keys
+          #ssh-agent -a /tmp/ssh_agent.sock > /dev/null
+          echo "${{ secrets.PKGBUILD_KEY }}" >> ~/.ssh/authorized_keys
+          eval `ssh-agent -s`
+          ssh-add ~/.ssh/authorized_keys
+          
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          install-dependencies: false
           
       - name: Update github
         run: |
