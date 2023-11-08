@@ -63,11 +63,12 @@ jobs:
       #     echo "End Clean System"
       #     df -h
         
-      # - name: Install Dependencies
-      #   shell: bash
-      #   run: |
-      #     echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
-      #     pacman -Syu --noconfirm --needed pacman sudo git github-cli openssh gnupg coreutils rsync wget fakeroot binutils cmake extra-cmake-modules gcc make devtools \
+      - name: Install Dependencies
+        shell: bash
+        run: |
+          echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist" >> /etc/pacman.conf
+          pacman -Syu --noconfirm --needed tmate
+      #     pacman sudo git github-cli openssh gnupg coreutils rsync wget fakeroot binutils cmake extra-cmake-modules gcc make devtools \
       #     acl \
       #     archlinux-keyring \
       #     autoconf \
@@ -219,3 +220,5 @@ jobs:
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          install-dependencies: false
