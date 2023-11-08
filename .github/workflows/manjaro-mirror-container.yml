@@ -78,6 +78,7 @@ jobs:
           echo "${{ secrets.PACKAGE_BUILD_KEY }}" >> ~/.ssh/github_actions
           eval `ssh-agent -s`
           ssh-add ~/.ssh/github_actions
+          ssh-keyscan -t ed25519 github.com > /root/.ssh/known_hosts
           
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
