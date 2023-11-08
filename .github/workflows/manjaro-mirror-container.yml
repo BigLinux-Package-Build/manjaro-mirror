@@ -79,6 +79,12 @@ jobs:
           eval `ssh-agent -s`
           ssh-add ~/.ssh/github_actions
           
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          install-dependencies: false
+          
       - name: Mirrors Fasttrack
         shell: bash
         run: |
@@ -87,12 +93,6 @@ jobs:
           sudo pacman-mirrors --geoip
           cp /etc/pacman.d/mirrorlist $PWD
           sed -i '/#/d;/^$/d' mirrorlist
-          
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
-        with:
-          install-dependencies: false
           
       - name: Update github
         run: |
