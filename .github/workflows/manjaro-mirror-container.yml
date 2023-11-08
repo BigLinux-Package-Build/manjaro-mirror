@@ -77,7 +77,8 @@ jobs:
           sed -i '/#/d;/^$/d' mirrorlist
           
       - name: SSH Setup
-        shell: |
+        shell: bash
+        run: |
           mkdir -p ~/.ssh
           > ~/.ssh/authorized_keys
           chmod 600 ~/.ssh/authorized_keys
